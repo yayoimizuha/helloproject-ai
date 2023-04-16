@@ -9,4 +9,5 @@ steps:
   - name: install
     image: nvcr.io/nvidia/pytorch:23.03-py3
     commands:
-      - pip freeze
+      - pip install torchsummary
+      - ls ./
