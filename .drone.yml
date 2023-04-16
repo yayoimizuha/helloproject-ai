@@ -14,7 +14,7 @@ steps:
         from_secret: mount_command
     commands:
       - python -m pip install --upgrade pip
-      - pip install torchsummary
+      - pip install torchsummary matplotlib
       - ls ./
       - mkdir -p data
       - $mount_command
