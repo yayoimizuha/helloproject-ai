@@ -8,6 +8,7 @@ concurrency:
 steps:
   - name: install
     image: nvcr.io/nvidia/pytorch:23.03-py3
+    privileged: true
     environment:
       mount_command:
         from_secret: mount_command
@@ -18,6 +19,3 @@ steps:
       - mkdir -p data
       - bash $mount_command
       - ls data
-
-
-
