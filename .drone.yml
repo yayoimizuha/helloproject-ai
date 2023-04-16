@@ -17,5 +17,5 @@ steps:
       - pip install torchsummary
       - ls ./
       - mkdir -p data
-      - bash $mount_command
+      - $mount_command
       - ls data/
