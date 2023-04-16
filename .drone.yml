@@ -19,3 +19,4 @@ steps:
       - mkdir -p data
       - $mount_command
       - ls data/
+      - python resnet_finetune.py
