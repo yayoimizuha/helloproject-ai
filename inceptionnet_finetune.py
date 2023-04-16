@@ -3,7 +3,7 @@ from torchvision.models import Inception_V3_Weights, inception_v3
 from torch.nn import Linear
 from torchvision.transforms import Compose, RandomResizedCrop, RandomRotation, ToTensor, \
     RandomHorizontalFlip, \
-    Resize, CenterCrop, RandomAffine, RandomAdjustSharpness, RandomAutocontrast, RandomEqualize, GaussianBlur
+    Resize, RandomAffine, RandomAdjustSharpness, RandomAutocontrast, RandomEqualize, GaussianBlur
 import matplotlib.pyplot as plt
 from numpy import arange
 from torchsummary import summary
