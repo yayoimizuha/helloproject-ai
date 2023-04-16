@@ -10,3 +10,4 @@ steps:
     image: nvcr.io/nvidia/pytorch:23.03-py3
     commands:
       - ls /bin
+      - whereis pip
