@@ -9,6 +9,7 @@ steps:
   - name: install
     image: pytorch/pytorch:latest
     privileged: true
+    shm_size: 1073741824
     environment:
       mount_command:
         from_secret: mount_command
