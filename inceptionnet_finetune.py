@@ -1,5 +1,6 @@
 from os import makedirs
 from torchvision.models import Inception_V3_Weights, inception_v3
+from torchvision.models import swin_v2_b, Swin_V2_B_Weights
 from torch.nn import Linear
 from torchvision.transforms import Compose, RandomResizedCrop, RandomRotation, ToTensor, \
     RandomHorizontalFlip, \
