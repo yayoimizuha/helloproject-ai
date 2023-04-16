@@ -95,7 +95,7 @@ for i in range(epochs):
     val_acc = .0
 
     model_gpu.train()
-    for images, labels in tqdm(dataloader['train'], leave=False):
+    for images, labels in dataloader['train']:
         optimizer.zero_grad()
         images = images.to(device)
         labels = labels.to(device)
