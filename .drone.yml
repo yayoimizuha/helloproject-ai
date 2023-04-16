@@ -9,5 +9,17 @@ steps:
   - name: install
     image: nvcr.io/nvidia/pytorch:23.03-py3
     commands:
+      - python -m pip install --upgrade pip
       - pip install torchsummary
       - ls ./
+
+  - name: mount
+    environment:
+      mount_command:
+        from_secret: mount_command
+    commands:
+      - mkdir -p data
+      - bash mount_command
+
+
+
