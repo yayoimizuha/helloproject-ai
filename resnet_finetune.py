@@ -56,10 +56,10 @@ for name, layer in model.named_parameters():
         tune = True
     layer.requires_grad = tune
 
-print(model)
+# print(model)
 
 model.fc = Linear(in_features=2048, out_features=image_folder['train'].classes.__len__(), bias=True)
-summary(model=model, input_size=(3, 224, 224), device='cpu')
+# summary(model=model, input_size=(3, 224, 224), device='cpu')
 
 model_gpu = model.to(device=device)
 criterion = CrossEntropyLoss()
