@@ -3,7 +3,7 @@ from torchvision.models import ResNet50_Weights, resnet50
 from torch.nn import Linear
 from torchvision.transforms import Compose, RandomResizedCrop, RandomRotation, ToTensor, \
     RandomHorizontalFlip, \
-    Resize, CenterCrop, RandomAffine
+    Resize, CenterCrop, RandomAffine, GaussianBlur, RandomAutocontrast
 import matplotlib.pyplot as plt
 from numpy import arange
 from torchsummary import summary
@@ -23,6 +23,8 @@ transform = {
     'train': Compose([
         CenterCrop(200),
         RandomHorizontalFlip(p=0.1),
+        GaussianBlur(kernel_size=3),
+        RandomAutocontrast(),
         # Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
         ToTensor(),
         RandomRotation(degrees=15),

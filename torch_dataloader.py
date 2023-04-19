@@ -18,6 +18,6 @@ def show_image(x):
         plt.imshow(img)
 
 
-model = models.inception_v3(pretrained=True)
+model = models.inception_v3(models.Inception_V3_Weights)
 
-print(model)
+print(model._get_name())
