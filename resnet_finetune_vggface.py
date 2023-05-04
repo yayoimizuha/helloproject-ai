@@ -111,7 +111,7 @@ print()
 
 tune = False
 for name, layer in model.named_parameters():
-    if 'layer3' in name:
+    if 'layer1' in name:
         tune = True
     layer.requires_grad = tune
 
