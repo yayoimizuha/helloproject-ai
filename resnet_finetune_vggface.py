@@ -91,7 +91,7 @@ def plot_dataset(dataloader: DataLoader | tuple, col_len: int = 8,
         base_img[order_y * (shape_y + space_y) + space_y:(order_y + 1) * (shape_y + space_y),
         order_x * (shape_x + space_x):(order_x + 1) * (shape_x + space_x) - space_x, :] = image
     pil_image = Image.fromarray(base_img)
-    font = ImageFont.truetype(font='NotoSansCJK-Medium.ttc', size=24)
+    font = ImageFont.truetype(font=r'/usr/share/fonts/opentype/noto/NotoSansCJK-Medium.ttc', size=24)
     draw = ImageDraw.Draw(pil_image)
     pad = 5
     for order, label in enumerate(labels):
