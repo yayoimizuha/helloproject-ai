@@ -1,6 +1,7 @@
 from os import makedirs
 from torchvision.models import Inception_V3_Weights, inception_v3
 from torchvision.models import swin_v2_b, Swin_V2_B_Weights
+from torchvision.models import mobilenet_v3_small, MobileNet_V3_Small_Weights
 from torch.nn import Linear
 from torchvision.transforms import Compose, RandomResizedCrop, RandomRotation, ToTensor, \
     RandomHorizontalFlip, \
@@ -102,7 +103,9 @@ for i in range(epochs):
         images = images.to(device)
         labels = labels.to(device)
 
-        outputs, _ = model_gpu(images)
+        o = model_gpu(images)
+        print(o)
+        outputs, _ = o
 
         loss = criterion(outputs, labels)
         train_loss += loss.item()

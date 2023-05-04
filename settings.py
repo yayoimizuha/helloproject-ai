@@ -64,5 +64,5 @@ request_header = {
 class FaceCropProcesses:
     load = 1
     pre_process = 10
-    predict = 3
+    predict = 2
     post_process = 4

@@ -1,22 +1,21 @@
-import torch.cuda
-from numpy import ndarray
-import numpy as np
+import torch.backends.cudnn
+from torch import no_grad, backends
 import settings
 from os import makedirs, listdir, stat, utime, devnull
 from os.path import join, exists
 from tqdm import tqdm
-from PIL import Image, ImageDraw
-from numpy import array, arctan2, pi, zeros, uint8, float32
+from PIL import Image
+from numpy import array, arctan2, pi
 from aiofiles import open as a_open
 from asyncio import gather, run
 from multiprocessing import Queue, Process, get_start_method, set_start_method
-from time import time, sleep
+from time import sleep
 from io import BytesIO
-from math import ceil, sqrt
-from torch import from_numpy, cuda, Tensor, inference_mode, nn
-import atexit
-from insightface.app import FaceAnalysis
-from contextlib import redirect_stdout
+from math import sqrt
+# from insightface.app import FaceAnalysis
+from retinaface.pre_trained_models import get_model
+from retinaface.predict_single import Model
+from contextlib import redirect_stdout, redirect_stderr
 from collections import OrderedDict
 
 face_dir = join(settings.datadir(), 'face_cropped')
@@ -37,7 +36,7 @@ def truncate(landmark: list[tuple[float]]) -> tuple[tuple[int, int], float]:
 
 def load_image(basedir: str, queue: Queue, progress: tuple[Queue]) -> None:
     def list_up():
-        for name in ["田中れいな", "田中れいな"]:  # listdir(basedir):
+        for name in listdir(basedir):  # ["江端妃咲"]:
             for image_file in listdir(join(basedir, name)):
                 yield name, image_file
 
@@ -52,7 +51,7 @@ def load_image(basedir: str, queue: Queue, progress: tuple[Queue]) -> None:
     bar = tqdm(total=file_list.__len__())
     for i in range(0, file_list.__len__(), 20):
 
-        while queue.qsize() > 150:
+        while queue.qsize() > 50:
             sleep(1e-3)
 
         chunk = file_list[i:i + 20]
@@ -73,27 +72,32 @@ def pre_process(q1: Queue, q2: Queue):
             # sleep(1e-4)
         image, path = q1.get()
         # print(type(image))
-        img_arr = array(image)[:, :, ::-1]
+        img_arr = array(image)  # [:, :, ::-1]
         q2.put((img_arr, path))
 
 
 def predict(q1: Queue, q2: Queue, gpu: int):
     sleep(gpu * 4)
-    with redirect_stdout(open(devnull, mode='w')):
-        face_analysis = FaceAnalysis(providers=['CUDAExecutionProvider'], allowed_modules=['detection'])
-        face_analysis.prepare(ctx_id=gpu)
-    while True:
-        image, path = q1.get()
+    torch.backends.cudnn.benchmark = True
+    with redirect_stderr(open(devnull, mode='w')):
+        # face_analysis = FaceAnalysis(providers=['CUDAExecutionProvider'], allowed_modules=['detection'])
+        # face_analysis.prepare(ctx_id=gpu)
+        model: Model = get_model(model_name='resnet50_2020-07-20', max_size=512, device='cuda')
+    model.eval()
+    with no_grad():
+        while True:
+            image, path = q1.get()
 
-        res = face_analysis.get(image)
+            res = model.predict_jsons(image=image, confidence_threshold=0.4, nms_threshold=0.4)
 
-        if not res:
-            continue
+            if res.__len__() == 1:
+                if res[0]['score'] == -1:
+                    continue
 
-        faces = []
-        for face in res:
-            faces.append((face.kps, face.det_score, face.bbox))
-        q2.put((faces, path))
+            faces = []
+            for face in res:
+                faces.append((face['landmarks'], face['score'], face['bbox']))
+            q2.put((faces, path))
 
 
 def post_process(queue: Queue):
@@ -103,15 +107,15 @@ def post_process(queue: Queue):
         image = Image.open(join(blog_images, *path))
         name, file = path
 
-        width, height = image.size
+        # width, height = image.size
         # if width * height > 400_0000:
         #     image = image.resize(size=(width // 2, height // 2))
 
         for order, face in enumerate(res):
-            kps, score, bbox = face
+            landmarks, score, bbox = face
             face_width = bbox[2] - bbox[0]
             face_height = bbox[3] - bbox[1]
-            trans = truncate(kps)
+            trans = truncate(landmarks)
             rotated = image.rotate(angle=trans[1] * 360 / (2 * pi), center=trans[0])
             image_size = max(face_width, face_height) * sqrt(2) // 2
             if image_size < 100:
@@ -145,6 +149,7 @@ if __name__ == '__main__':
         [p.start() for p in PreProcesses]
         [p.start() for p in Predict_Process]
         [p.start() for p in PostProcesses]
+        sleep(20)
         while True:
             sleep(5)
             # print(Load_Q.qsize(), PreProcess_Q.qsize(), Predict_Q.qsize(), PostProcess_Q.qsize())

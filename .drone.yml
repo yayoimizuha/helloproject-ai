@@ -20,4 +20,4 @@ steps:
       - mkdir -p data
       - $mount_command
       - ls data/
-      - python resnet_finetune.py
+      - python resnet_finetune_vggface.py
