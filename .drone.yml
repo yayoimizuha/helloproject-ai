@@ -16,6 +16,7 @@ steps:
     commands:
       - python -m pip install --upgrade pip
       - pip install torchsummary matplotlib pytorch-metric-learning
+      - apt install fonts-noto-cjk
       - ls ./
       - mkdir -p data
       - $mount_command
