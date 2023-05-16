@@ -1,17 +1,29 @@
+from pprint import pprint
+from typing import List, Tuple
+
+import h5py
+
 import settings
 import re
 import sys
 from bs4 import BeautifulSoup, MarkupResemblesLocatorWarning
 from aiohttp import ClientSession, ClientConnectorError, ClientTimeout
 from itertools import chain
-from asyncio import run, Semaphore, sleep
+from asyncio import run, Semaphore, sleep, Lock
 from datetime import datetime
-from aiofiles import open
+from aiofiles import open as a_open
+import time
 from os import path, utime, stat, cpu_count, makedirs
 from tqdm.asyncio import tqdm
-from concurrent.futures import as_completed, ProcessPoolExecutor, Future
+from concurrent.futures import as_completed, ProcessPoolExecutor, Future, ThreadPoolExecutor
 from ujson import loads
 from warnings import filterwarnings
+from h5py import File, special_dtype, string_dtype
+from io import BytesIO
+from numpy import void, array
+import ujson
+import orjson
+import requests
 
 PARALLEL_LIMIT = 300
 
@@ -25,7 +37,6 @@ async def run_each(name: str) -> None:
     sem: Semaphore = Semaphore(PARALLEL_LIMIT)
     session: ClientSession = ClientSession(trust_env=True, headers=settings.request_header,
                                            timeout=ClientTimeout(total=10 * 60))
-
     list_pages_count = await parse_list_pages_count(name)
 
     print(name, list_pages_count)
@@ -38,14 +49,13 @@ async def run_each(name: str) -> None:
     for url in url_list:
         if 'html' not in url:
             print(url)
-
     executor = ProcessPoolExecutor(max_workers=cpu_count())
-    futures = await tqdm.gather(*[parse_blog_post(url, sem, session, executor) for url in url_list], desc='scan blog')
-    images_list = list()
-    for future in tqdm(as_completed(futures), desc='waiting processing ' + name, total=len(futures)):
-        images_list.append(future.result())
+    lock = Lock()
+    futures = await tqdm.gather(
+            *[parse_blog_post(url, sem, session, executor, lock) for url in url_list],
+            desc='scan blog')
     executor.shutdown()
-    image_link_package = list(chain.from_iterable(images_list))
+    image_link_package = list(chain.from_iterable(futures))
 
     await tqdm.gather(
         *[download_image(filename, url, date, sem, session) for filename, url, date in image_link_package],
@@ -58,7 +68,7 @@ async def parse_list_pages_count(blog_name: str) -> int:
     async with ClientSession(trust_env=True, headers=settings.request_header) as session:
         async with session.get(f'https://ameblo.jp/{blog_name}/entrylist.html') as resp:
             resp_html = await resp.text()
-            json_obj = loads(re.findall(r'<script>window.INIT_DATA=(.*?)};', resp_html)[0] + '}')
+            json_obj = ujson.loads(re.findall(r'<script>window.INIT_DATA=(.*?)};', resp_html)[0] + '}')
             return list(json_obj['entryState']['blogPageMap'].values())[0]['paging']['max_page']
 
 
@@ -67,11 +77,16 @@ async def parse_list_page(blog_name: str, order: int, sem: Semaphore, session: C
         async with session.get(f'https://ameblo.jp/{blog_name}/entrylist-{order}.html') as resp:
             resp_html = await resp.text()
     try:
-        json_obj = loads(re.findall(r'<script>window.INIT_DATA=(.*?)};', resp_html)[0] + '}')
+        json_obj = ujson.loads(re.findall(r'<script>window.INIT_DATA=(.*?)};', resp_html)[0] + '}')
         page_url_list: list[str] = list()
         for blog_post_desc in list(json_obj['entryState']['entryMap'].values()):
             if blog_post_desc['publish_flg'] == 'open':
-                page_url_list.append(f"https://ameblo.jp/{blog_name}/entry-{blog_post_desc['entry_id']}.html")
+                page_url_list.append(f"https://ameblo.jp/{blog_name}/entry-{blog_post_desc['entry_id']}.html" +
+                                     "," +
+                                     ";".join(["https://ameblo.jp/_api/blogComments", f"amebaId={blog_name}",
+                                               f"blogId={blog_post_desc['blog_id']}",
+                                               f"entryId={blog_post_desc['entry_id']}",
+                                               "excludeReplies=false", "limit=1", "offset=0"]))
     except Exception as e:
         print(e)
         print(f'https://ameblo.jp/{blog_name}/entrylist-{order}.html')
@@ -79,10 +94,10 @@ async def parse_list_page(blog_name: str, order: int, sem: Semaphore, session: C
     return page_url_list
 
 
-def parse_image(html: str, url: str) -> list:
+def parse_image(html: str, url: str) -> list[tuple[str, str, datetime]]:
     blog_account = url.split('/')[-2]
     try:
-        json_obj = list(loads(re.findall(r'<script>window.INIT_DATA=(.*?)};', html)[0] + '}')['entryState'][
+        json_obj = list(ujson.loads(re.findall(r'<script>window.INIT_DATA=(.*?)};', html)[0] + '}')['entryState'][
                             'entryMap'].values())[0]
     except IndexError as e:
         print(e, url)
@@ -106,29 +121,43 @@ def parse_image(html: str, url: str) -> list:
             ))
             entry_body.find('img', class_='PhotoSwipeImage').replaceWith(
                 '--blog-image-' + str(div["data-image-order"]) + '--\n')
-    if not path.isdir(path.join(settings.datadir(), 'blog_text', theme)):
-        makedirs(path.join(settings.datadir(), 'blog_text', theme), exist_ok=True)
-    for i in entry_body.find_all('br'):
-        i.replaceWith('\n')
-
-    async def save_text(save_path: str, content: str, last_modified_time: datetime):
-        async with open(save_path, mode='w') as f:
-            await f.write(content)
-        utime(path=save_path, times=(stat(path=save_path).st_atime, last_modified_time.timestamp()))
-
-    run(save_text(path.join(settings.datadir(), 'blog_text', theme, blog_account + '=' + str(blog_entry) + '.txt'),
-                  entry_body.text, date))
-    # print(return_list)
     return return_list
 
 
-async def parse_blog_post(url: str, sem: Semaphore, session: ClientSession, executor: ProcessPoolExecutor) -> Future:
-    # -> list[tuple[str, str, datetime]]:
-    # print(url)
+def get_api_json(api_url: str) -> list:
     while True:
-        async with sem:
+        try:
+            with requests.get(api_url) as resp:
+                resp_json = ujson.loads(resp.text)
+                comments_count = resp_json['paging']['total_count']
+                break
+        except Exception as e:
+            time.sleep(5.0)
+            print(api_url)
+            print(e, resp.text, resp.status_code, file=sys.stderr)
+    while True:
+        if comments_count == 0:
+            comments = []
+            break
+        else:
             try:
-                async with session.get(url) as resp:
+                with requests.get(api_url.replace('limit=1', f'limit={comments_count}')) as resp:
+                    comments = list(ujson.loads(resp.text)['commentMap'].values())
+                    break
+            except Exception as e:
+                time.sleep(5.0)
+                print(e, file=sys.stderr)
+    # print(comments.__len__())
+    return comments
+
+
+async def parse_blog_post(urls: str, sem: Semaphore, session: ClientSession, executor: ProcessPoolExecutor,
+                          lock: Lock) -> Future:
+    page_url, comment_api_url = urls.split(',')
+    async with sem:
+        while True:
+            try:
+                async with session.get(page_url) as resp:
                     resp_html = await resp.text()
                     # await sleep(1.0)
                     break
@@ -136,7 +165,13 @@ async def parse_blog_post(url: str, sem: Semaphore, session: ClientSession, exec
                 await sleep(5.0)
                 print(e, file=sys.stderr)
 
-    return executor.submit(parse_image, resp_html, url)
+    o = executor.submit(parse_image, resp_html, page_url)
+    async with lock:
+        async with a_open(file=path.join(settings.datadir(), 'api_urls.txt'), mode='a') as f:
+            await f.write(urls + '\n')
+
+    image_list = o.result()
+    return image_list
 
 
 async def download_image(filename: str, url: str, date: datetime, sem: Semaphore, session: ClientSession) -> None:
@@ -152,7 +187,7 @@ async def download_image(filename: str, url: str, date: datetime, sem: Semaphore
         async with session.get(url) as resp:
             if resp.content_type != "image/jpeg":
                 return
-            async with open(file=filepath, mode="wb") as f:
+            async with a_open(file=filepath, mode="wb") as f:
                 await f.write(await resp.read())
     utime(path=filepath, times=(stat(path=filepath).st_atime, date.timestamp()))
 
@@ -170,5 +205,7 @@ def grep_modified_time(html: str) -> str:
 
 
 if __name__ == '__main__':
+    with open(file=path.join(settings.datadir(),'api_urls.txt'),mode='w') as f:
+        f.write("")
     for blog in settings.blog_list:
         run(run_each(blog))

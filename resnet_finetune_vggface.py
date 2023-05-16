@@ -130,9 +130,9 @@ optimizer = Adam(params=[
     # {'params': model_gpu.maxpool.parameters(), 'lr': 1e-8},
     {'params': model_gpu.layer1.parameters(), 'lr': 1e-8},
     {'params': model_gpu.layer2.parameters(), 'lr': 1e-8},
-    {'params': model_gpu.layer3.parameters(), 'lr': 1e-5},
-    {'params': model_gpu.layer4.parameters(), 'lr': 1e-4},
-    {'params': model_gpu.fc.parameters(), 'lr': 1e-4},
+    {'params': model_gpu.layer3.parameters(), 'lr': 1e-6},
+    {'params': model_gpu.layer4.parameters(), 'lr': 1e-5},
+    {'params': model_gpu.fc.parameters(), 'lr': 1e-5},
 
 ])
 scheduler = lr_scheduler.StepLR(optimizer=optimizer, step_size=5, gamma=0.5)
