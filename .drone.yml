@@ -15,7 +15,7 @@ steps:
         from_secret: mount_command
     commands:
       - python -m pip install --upgrade pip
-      - pip install torchsummary matplotlib pytorch-metric-learning
+      - pip install torchsummary matplotlib pytorch-metric-learning torchinfo
       - apt update
       - apt install fonts-noto-cjk-extra -y
       - ls ./
