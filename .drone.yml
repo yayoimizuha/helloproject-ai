@@ -22,4 +22,4 @@ steps:
       - mkdir -p data
       - $mount_command
       - ls data/
-      - CI=False python resnet_finetune_vggface.py
+      - CI=False python facenet_transfer_learning.py

@@ -1,8 +1,7 @@
 from shutil import copyfile
-
 from insightface.app import FaceAnalysis
 from os import getcwd, listdir, makedirs
-from os.path import join, isdir, isfile
+from os.path import join, isdir, isfile, basename, dirname
 from numpy import dot, array
 from numpy.linalg import norm
 from PIL import Image
@@ -30,8 +29,10 @@ if collect_image_emb.__len__() == 0:
 
 # collect_image_emb = collect_image_emb[0].embedding
 
-makedirs(join(getcwd(), argv[2], "true"), exist_ok=True)
-makedirs(join(getcwd(), argv[2], "false"), exist_ok=True)
+dir_name = basename(dirname(argv[2]))
+print(dir_name)
+makedirs(join(getcwd(), dir_name, "true"), exist_ok=True)
+makedirs(join(getcwd(), dir_name, "false"), exist_ok=True)
 
 images = []
 for file in image_files:
@@ -45,7 +46,7 @@ for file in image_files:
                  (norm(emb[0].embedding) * norm(collect_image_emb[0].embedding))
         print(file, cosine)
         if cosine > 0.3:
-            copyfile(join(getcwd(), argv[2], file), join(getcwd(), argv[2], "true", file))
+            copyfile(join(getcwd(), argv[2], file), join(getcwd(), dir_name, "true", file))
         else:
 
-            copyfile(join(getcwd(), argv[2], file), join(getcwd(), argv[2], "false", file))
+            copyfile(join(getcwd(), argv[2], file), join(getcwd(), dir_name, "false", file))

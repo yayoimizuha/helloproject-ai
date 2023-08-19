@@ -52,8 +52,8 @@ async def run_each(name: str) -> None:
     executor = ProcessPoolExecutor(max_workers=cpu_count())
     lock = Lock()
     futures = await tqdm.gather(
-            *[parse_blog_post(url, sem, session, executor, lock) for url in url_list],
-            desc='scan blog')
+        *[parse_blog_post(url, sem, session, executor, lock) for url in url_list],
+        desc='scan blog')
     executor.shutdown()
     image_link_package = list(chain.from_iterable(futures))
 
@@ -105,7 +105,7 @@ def parse_image(html: str, url: str) -> list[tuple[str, str, datetime]]:
     theme = settings.theme_curator(json_obj['theme_name'], blog_account)
     date = datetime.fromisoformat(json_obj['last_edit_datetime'])
     blog_entry = json_obj['entry_id']
-    entry_body = BeautifulSoup(json_obj['entry_text'].replace('<br>', '\n'), 'lxml')
+    entry_body = BeautifulSoup('<div>{}</div>'.format(json_obj['entry_text'].replace('<br>', '\n')), 'lxml')
     # print(entry_body)
     for emoji in entry_body.find_all('img', class_='emoji'):
         emoji.decompose()
@@ -159,11 +159,12 @@ async def parse_blog_post(urls: str, sem: Semaphore, session: ClientSession, exe
             try:
                 async with session.get(page_url) as resp:
                     resp_html = await resp.text()
+                    if resp.status != 200:
+                        raise Exception
                     # await sleep(1.0)
                     break
-            except ClientConnectorError as e:
+            except:
                 await sleep(5.0)
-                print(e, file=sys.stderr)
 
     o = executor.submit(parse_image, resp_html, page_url)
     async with lock:
@@ -205,7 +206,7 @@ def grep_modified_time(html: str) -> str:
 
 
 if __name__ == '__main__':
-    with open(file=path.join(settings.datadir(),'api_urls.txt'),mode='w') as f:
+    with open(file=path.join(settings.datadir(), 'api_urls.txt'), mode='w') as f:
         f.write("")
     for blog in settings.blog_list:
         run(run_each(blog))

@@ -9,8 +9,8 @@ from asyncio import to_thread, gather, run
 from aiofiles import open as a_open
 
 valid_rate = 0.1
-SRC_DIR = join(r'/mnt/share/dataset/vggface2/train')
-DEST_DIR = join(datadir(), 'vggface2')
+SRC_DIR = join(r'/home/tomokazu/PycharmProjects/helloproject-ai/data/sample_set/')
+DEST_DIR = join(datadir(), 'dataset')
 
 makedirs(DEST_DIR, exist_ok=True)
 rmtree(join(DEST_DIR, 'train'), ignore_errors=True)
