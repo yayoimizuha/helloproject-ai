@@ -151,7 +151,7 @@ for epoch in range(epochs):
     model_gpu.train()
     # makedirs(join(save_dir, 'pallets', str(epoch)), exist_ok=True)
 
-    for count, (images, labels) in enumerate(tqdm(dataloader['train'])):
+    for count, (images, labels) in enumerate(tqdm(dataloader['train'], disable=None)):
         if count == 1:
             image_pallets = plot_dataset(dataloader=(images, labels), col_len=6,
                                          label_text=image_folder['train'].classes)
