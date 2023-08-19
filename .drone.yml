@@ -14,10 +14,10 @@ steps:
       mount_command:
         from_secret: mount_command
     commands:
-      - python -m pip install --upgrade pip
-      - pip install torchsummary matplotlib pytorch-metric-learning torchinfo
-      - apt update
-      - apt install fonts-noto-cjk-extra -y
+      - python -m pip install -q -U pip
+      - pip install -q torchsummary matplotlib pytorch-metric-learning torchinfo torch torchvision tqdm Pillow facenet-pytorch
+      - apt update -qq
+      - apt install fonts-noto-cjk-extra -y -qq
       - ls ./
       - mkdir -p data
       - $mount_command
