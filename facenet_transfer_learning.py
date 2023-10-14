@@ -24,9 +24,11 @@ from torch.cuda import is_available
 from torch import no_grad, save, Tensor, load, device
 from datetime import datetime
 from distutils.util import strtobool
+from intel_extension_for_pytorch import optimize
 
 CI = bool(strtobool(environ['CI']))
-device = device('cuda' if is_available() else 'cpu')
+# device = device('cuda' if is_available() else 'cpu')
+device = 'xpu'
 
 model_path: str = join(datadir(), 'artifact', 'vggface2_facenet.pth')
 input_shape: int = 256
@@ -128,6 +130,7 @@ optimizer = Adam(params=[
     {'params': model_gpu[1].parameters(), 'lr': 1e-3},
 ])
 
+model, optimizer = optimize(model=model, optimizer=optimizer)
 scheduler = lr_scheduler.StepLR(optimizer=optimizer, step_size=10, gamma=0.9)
 epochs = 100
 

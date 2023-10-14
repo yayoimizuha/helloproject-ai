@@ -45,7 +45,7 @@ def parse_article(url: str) -> tuple[str, str, str, str, str]:
         # print(div)
         if not div.has_attr('data-src'):
             entry_body.find('img', class_='PhotoSwipeImage').replaceWith(
-                '--blog-image-' + str(div["data-image-order"]) + '--\n')
+                '\n' + '--blog-image-' + str(div["data-image-order"]) + '--')
     for i in entry_body.find_all('br'):
         i.replaceWith('\n')
     data_path = '/'.join([blog_account, str(blog_entry)])

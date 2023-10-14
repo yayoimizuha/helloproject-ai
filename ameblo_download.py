@@ -1,13 +1,8 @@
-from pprint import pprint
-from typing import List, Tuple
-
-import h5py
-
 import settings
 import re
 import sys
 from bs4 import BeautifulSoup, MarkupResemblesLocatorWarning
-from aiohttp import ClientSession, ClientConnectorError, ClientTimeout
+from aiohttp import ClientSession, ClientTimeout
 from itertools import chain
 from asyncio import run, Semaphore, sleep, Lock
 from datetime import datetime
@@ -15,14 +10,9 @@ from aiofiles import open as a_open
 import time
 from os import path, utime, stat, cpu_count, makedirs
 from tqdm.asyncio import tqdm
-from concurrent.futures import as_completed, ProcessPoolExecutor, Future, ThreadPoolExecutor
-from ujson import loads
+from concurrent.futures import ProcessPoolExecutor, Future
 from warnings import filterwarnings
-from h5py import File, special_dtype, string_dtype
-from io import BytesIO
-from numpy import void, array
 import ujson
-import orjson
 import requests
 
 PARALLEL_LIMIT = 300
