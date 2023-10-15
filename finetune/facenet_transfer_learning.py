@@ -166,9 +166,9 @@ for epoch in range(epochs):
         train_loss += loss.item()
 
         scaler.scale(loss).backward()
-        scaler.unscale_(optimizer=optimizer)
 
-        utils.clip_grad_norm_(model.parameters(), max_norm=.1)
+        # scaler.unscale_(optimizer=optimizer)
+        # utils.clip_grad_norm_(model.parameters(), max_norm=.1)
         # loss.backward()
         scaler.step(optimizer=optimizer)
         scaler.update()
