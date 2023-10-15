@@ -6,7 +6,7 @@ from torchvision.transforms import Compose, RandomResizedCrop, RandomRotation, T
     Resize, CenterCrop, RandomAffine, GaussianBlur, RandomAutocontrast
 import matplotlib.pyplot as plt
 from numpy import arange
-from torchsummary import summary
+from torchinfo import summary
 from torch.nn import CrossEntropyLoss
 from torch.optim import SGD, Adam, lr_scheduler
 from torchvision.datasets import ImageFolder
