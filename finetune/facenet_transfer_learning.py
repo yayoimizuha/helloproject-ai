@@ -1,9 +1,9 @@
 from os import makedirs, environ
 from torchinfo import summary
-from torch.nn import Linear,  Sequential, Dropout,  CrossEntropyLoss, Identity,  ReLU
+from torch.nn import Linear, Sequential, Dropout, CrossEntropyLoss, Identity, ReLU
 from torchvision.transforms import Compose, RandomResizedCrop, RandomRotation, ToTensor, \
     RandomHorizontalFlip, \
-    Resize,  RandomAutocontrast, InterpolationMode,  RandomErasing, \
+    Resize, RandomAutocontrast, InterpolationMode, RandomErasing, \
     RandomEqualize, RandomPosterize, RandomPerspective, RandomGrayscale
 import matplotlib
 
@@ -13,12 +13,13 @@ from numpy import arange, ndarray, ceil, full, uint8
 from torch.optim import SGD, Adam, lr_scheduler
 from torchvision.datasets import ImageFolder
 from torch.utils.data import DataLoader
+from torch.cuda.amp import GradScaler, autocast
 from tqdm import tqdm
 from PIL import Image, ImageDraw, ImageFont
 from settings import datadir
 from os.path import join
 from torch.cuda import is_available
-from torch import no_grad, save, Tensor, load, device
+from torch import no_grad, save, Tensor, load, device, float16
 from datetime import datetime
 from distutils.util import strtobool
 
@@ -125,6 +126,8 @@ optimizer = Adam(params=[
     {'params': model_gpu[1].parameters(), 'lr': 1e-3},
 ])
 
+scaler = GradScaler()
+
 # model, optimizer = optimize(model=model, optimizer=optimizer)
 scheduler = lr_scheduler.StepLR(optimizer=optimizer, step_size=10, gamma=0.9)
 epochs = 100
@@ -155,7 +158,8 @@ for epoch in range(epochs):
                                          label_text=image_folder['train'].classes)
             image_pallets.save(join(save_dir, 'pallets', str(epoch) + '_train.jpg'))
         optimizer.zero_grad()
-        images = images.to(device)
+        with autocast(dtype=float16):
+            images = images.to(device)
         labels = labels.to(device)
 
         outputs = model(images)
@@ -163,8 +167,12 @@ for epoch in range(epochs):
         loss = criterion(outputs, labels)
         train_loss += loss.item()
 
-        loss.backward()
-        optimizer.step()
+        scaler.scale(loss).backward()
+        scaler.unscale_(optimizer=optimizer)
+        # loss.backward()
+        scaler.step(optimizer=optimizer)
+        scaler.update()
+        # optimizer.step()
 
         predicted = outputs.max(1)[1]
         train_acc += (predicted == labels).sum()
