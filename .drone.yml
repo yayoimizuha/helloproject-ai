@@ -20,8 +20,8 @@ steps:
       - pip install -q torchsummary matplotlib pytorch-metric-learning torchinfo torch torchvision tqdm Pillow facenet-pytorch
       - apt update -qq
       - apt install fonts-noto-cjk-extra -y -qq
-      - ls ./
+      # - ls ./
       - mkdir -p data
       - $mount_command
-      - ls data/
+      # - ls data/
       - CI=True python finetune/facenet_transfer_learning.py

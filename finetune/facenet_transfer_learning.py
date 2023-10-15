@@ -158,13 +158,11 @@ for epoch in range(epochs):
                                          label_text=image_folder['train'].classes)
             image_pallets.save(join(save_dir, 'pallets', str(epoch) + '_train.jpg'))
         optimizer.zero_grad()
-        with autocast(dtype=float16):
+        with autocast(dtype=float16,enabled=True):
             images = images.to(device)
-        labels = labels.to(device)
-
-        outputs = model(images)
-
-        loss = criterion(outputs, labels)
+            labels = labels.to(device)
+            outputs = model(images)
+            loss = criterion(outputs, labels)
         train_loss += loss.item()
 
         scaler.scale(loss).backward()
@@ -187,8 +185,9 @@ for epoch in range(epochs):
                 image_pallets = plot_dataset(dataloader=(images, labels), col_len=6,
                                              label_text=image_folder['train'].classes)
                 image_pallets.save(join(save_dir, 'pallets', str(epoch) + '_val.jpg'))
-            images = images.to(device)
-            labels = labels.to(device)
+            with autocast(dtype=float16, enabled=True):
+                images = images.to(device)
+                labels = labels.to(device)
             outputs = model_gpu(images)
             loss = criterion(outputs, labels)
             val_loss += loss.item()
