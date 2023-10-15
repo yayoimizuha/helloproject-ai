@@ -22,4 +22,5 @@ steps:
       - mkdir -p data
       - $mount_command
       - ls data/
-      - CI=True python facenet_transfer_learning.py
+      - source setenv.sh
+      - CI=True python finetune/facenet_transfer_learning.py

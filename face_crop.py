@@ -13,6 +13,7 @@ from time import sleep
 from io import BytesIO
 from math import sqrt
 # from insightface.app import FaceAnalysis
+# pip install retinaface_pytorch
 from retinaface.pre_trained_models import get_model
 from retinaface.predict_single import Model
 from contextlib import redirect_stdout, redirect_stderr

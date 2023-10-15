@@ -2,7 +2,6 @@ from torch import zeros, load, no_grad, stack, float32, nn
 from torch.utils.data import DataLoader
 from torchvision.datasets import ImageFolder
 from torchvision.transforms import Compose, functional, ToTensor, Resize, ConvertImageDtype
-from torch2trt import torch2trt
 from PIL import Image
 from numpy import array
 from os import listdir, makedirs

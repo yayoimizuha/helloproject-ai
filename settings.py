@@ -1,5 +1,5 @@
 from functools import cache
-from os import getcwd, pardir
+from os import getcwd, pardir, environ
 from os.path import join, abspath, dirname
 
 blog_list = ['angerme-ss-shin', 'angerme-amerika', 'angerme-new', 'juicejuice-official', 'tsubaki-factory',
@@ -53,7 +53,7 @@ def theme_curator(theme: str, blog_id: str) -> str:
 
 @cache
 def datadir():
-    return join('/home/tomokazu/PycharmProjects/helloproject-ai/', 'data')
+    return environ['DATA_DIR']
 
 
 request_header = {

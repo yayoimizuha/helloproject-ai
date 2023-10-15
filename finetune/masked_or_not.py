@@ -7,7 +7,7 @@ from torchvision.transforms import Compose, RandomResizedCrop, RandomRotation, T
     RandomHorizontalFlip, \
     Resize, RandomAffine, RandomAdjustSharpness, RandomAutocontrast, RandomEqualize, GaussianBlur, Normalize
 from numpy import arange, ceil, full, float32, uint8, amax, amin
-from torchsummary import summary
+from torchinfo import summary
 from torch.nn import CrossEntropyLoss
 from torch.cuda.amp.grad_scaler import GradScaler
 from torch.cuda.amp import autocast

@@ -9,7 +9,7 @@ from asyncio import to_thread, gather, run
 from aiofiles import open as a_open
 
 valid_rate = 0.1
-SRC_DIR = join(r'/home/tomokazu/PycharmProjects/helloproject-ai/data/sample_set/')
+SRC_DIR = join(datadir(), 'sample_set')
 DEST_DIR = join(datadir(), 'dataset')
 
 makedirs(DEST_DIR, exist_ok=True)
@@ -51,4 +51,3 @@ with tqdm(listdir(SRC_DIR)) as pbar:
             coroutines.append(co)
         # print(name, file)
         run(waiting(coroutines))
-
