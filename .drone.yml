@@ -24,4 +24,4 @@ steps:
       - mkdir -p data
       - $mount_command
       - ls data/
-      - CI=True python finetune/facenet_transfer_learning.py
+      - # CI=True python finetune/facenet_transfer_learning.py

@@ -19,7 +19,7 @@ from japanize_matplotlib import japanize
 device = device('cuda' if is_available() else 'cpu')
 # device = 'cpu'
 print(f'device: {device}')
-model_path: str = join(datadir(), 'artifact', 'facenet-tl_2023-06-03 23:48:19.808311', 'model.pth')
+model_path: str = join(datadir(), 'artifact', 'facenet-tl_2023-10-15 07:08:44.537055', 'model.pth')
 print(f'model path: {model_path}')
 input_shape: int = 256
 batch_size = 64
@@ -67,3 +67,4 @@ japanize()
 heatmap_df.max()
 pyplot.savefig(join(dest_dir, 'confusion_matrix.png'))
 print(f'acc: {1 - heatmap_df.to_numpy().flatten().sum() / image_folder.__len__()}')
+print(image_folder.classes)
