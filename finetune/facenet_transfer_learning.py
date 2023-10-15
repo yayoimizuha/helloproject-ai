@@ -126,7 +126,7 @@ optimizer = Adam(params=[
     {'params': model_gpu[1].parameters(), 'lr': 1e-3},
 ])
 
-scaler = GradScaler(init_scale=4096)
+scaler = GradScaler(init_scale=256)
 
 # model, optimizer = optimize(model=model, optimizer=optimizer)
 scheduler = lr_scheduler.StepLR(optimizer=optimizer, step_size=10, gamma=0.9)
