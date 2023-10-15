@@ -126,7 +126,7 @@ optimizer = Adam(params=[
     {'params': model_gpu[1].parameters(), 'lr': 1e-3},
 ])
 
-scaler = GradScaler()
+scaler = GradScaler(init_scale=4096)
 
 # model, optimizer = optimize(model=model, optimizer=optimizer)
 scheduler = lr_scheduler.StepLR(optimizer=optimizer, step_size=10, gamma=0.9)
@@ -168,7 +168,7 @@ for epoch in range(epochs):
         scaler.scale(loss).backward()
         scaler.unscale_(optimizer=optimizer)
 
-        utils.clip_grad_norm_(model.parameters(), max_norm=.5)
+        utils.clip_grad_norm_(model.parameters(), max_norm=.1)
         # loss.backward()
         scaler.step(optimizer=optimizer)
         scaler.update()
