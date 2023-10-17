@@ -16,12 +16,12 @@ from pandas import DataFrame
 from seaborn import heatmap, color_palette, set_palette
 from matplotlib import pyplot
 from japanize_matplotlib import japanize
-from torch_tensorrt import compile
+from torch_tensorrt import compile, Input
 
 device = device('cuda' if is_available() else 'cpu')
 # device = 'cpu'
 print(f'device: {device}')
-model_path: str = join(datadir(), 'artifact', 'facenet-tl_2023-10-15 07:08:44.537055', 'model.pth')
+model_path: str = join(datadir(), 'artifact', 'facenet-tl_2023-10-15 14:46:51.187699', 'model.pth')
 print(f'model path: {model_path}')
 input_shape: int = 256
 batch_size = 64
@@ -52,9 +52,16 @@ else:
 
     example_input = randn(size=[batch_size, 3, 256, 256]).float().cuda()
     traced_script_module = jit.trace(model, example_inputs=[example_input])
-    trt_model = compile(module=traced_script_module, inputs=[example_input],
-                        enabled_precisions={float32, float16},
-                        truncate_long_and_double=True)
+    trt_model = compile(module=traced_script_module, inputs=[
+        Input(
+            min_shape=[1, 3, 256, 256],
+            opt_shape=[batch_size, 3, 256, 256],
+            max_shape=[batch_size, 3, 256, 256]
+        )
+    ],
+                        enabled_precisions={float32},
+                        truncate_long_and_double=True,
+                        allow_shape_tensors=True)
     jit.save(trt_model, join(datadir(), 'infer_all_torch_trt.ts'))
 
 # heatmap_df = DataFrame(index=image_class, columns=image_folder.classes).fillna(0)
