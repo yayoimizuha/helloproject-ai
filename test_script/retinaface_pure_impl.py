@@ -1,3 +1,4 @@
+import random
 from itertools import product
 from math import ceil
 
@@ -19,9 +20,18 @@ from torchvision.utils import _log_api_usage_once
 
 # model: Model = get_model(model_name='resnet50_2020-07-20', max_size=512, device='cuda')
 # model.eval()
+# Python random
+seed = 0
+random.seed(seed)
+# Numpy
+np.random.seed(seed)
+# Pytorch
+torch.manual_seed(seed)
+torch.cuda.manual_seed(seed)
+torch.backends.cudnn.deterministic = True
+torch.use_deterministic_algorithms = True
 
-
-image = Image.open(r"C:\Users\tomokazu\すぐ消す\野中美希.jpg").convert(mode="RGB")
+image = Image.open(r"C:\Users\tomokazu\CLionProjects\ameba_blog_downloader\manaka_test.jpg").convert(mode="RGB")
 image_arr = from_numpy(np.array(object=image, dtype=np.float32)).unsqueeze(0).permute(0, 3, 1, 2)
 
 max_size = 512
@@ -37,6 +47,7 @@ retina_model = RetinaFace(
 ).eval()
 
 print(image_arr.size())
+print(image_arr)
 
 torch.onnx.export(
     model=retina_model,
@@ -58,7 +69,9 @@ torch.onnx.export(
 with no_grad():
     bbox_regressions, classifications, ldm_regressions = retina_model(image_arr)
     print(bbox_regressions)
-    print(bbox_regressions.data[0][:, :2])
+    print(classifications)
+    print(ldm_regressions)
+    # print(bbox_regressions.data[0][:, :2])
     print(bbox_regressions.size())
     print(classifications.size())
     print(ldm_regressions.size())
