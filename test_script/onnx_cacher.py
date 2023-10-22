@@ -20,6 +20,7 @@ print(__version__)
 image_arr = numpy.expand_dims(numpy.array(
     Image.open(r'C:\Users\tomokazu\CLionProjects\ameba_blog_downloader\manaka_test.jpg').convert('RGB')), 0).transpose(
     0, 3, 1, 2).astype(numpy.float32)
+image_arr /= 255.0
 print(image_arr)
 print(image_arr.shape)
 res = onnx_session.run(input_feed={'input': image_arr}, output_names=["bbox", "confidence", "landmark"])
