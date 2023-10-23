@@ -16,6 +16,7 @@ steps:
       PYTHONPATH: /drone/src/
       DATA_DIR: /drone/src/data/
     commands:
+      - git diff --name-only `git merge-base refs/remotes/origin/master HEAD`..HEAD | grep finetune/facenet_transfer_learning.py > /dev/null || exit 78
       - python -m pip install -q -U pip
       - pip install -q torchsummary matplotlib pytorch-metric-learning torchinfo torch torchvision tqdm Pillow facenet-pytorch
       - apt update -qq
