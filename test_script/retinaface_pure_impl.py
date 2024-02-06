@@ -34,6 +34,8 @@ torch.use_deterministic_algorithms = True
 image = Image.open(r"C:\Users\tomokazu\CLionProjects\ameba_blog_downloader\manaka_test.jpg").convert(mode="RGB")
 image_arr = from_numpy(np.array(object=image, dtype=np.float32)).unsqueeze(0).permute(0, 3, 1, 2)
 
+py_model: Model = get_model(model_name='resnet50_2020-07-20', max_size=512)
+print(py_model.predict_jsons(array(image)))
 max_size = 512
 
 example_input = randn(size=[10, 3, 256, 256]).float()
