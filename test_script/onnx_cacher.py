@@ -9,7 +9,7 @@ print(get_available_providers())
 
 onnx_session = InferenceSession(
     path_or_bytes=r"retinaface.onnx",
-    providers=[
+    providers=(
         'CUDAExecutionProvider',
         ('TensorrtExecutionProvider', {
             'trt_engine_cache_enable': True,
@@ -18,7 +18,7 @@ onnx_session = InferenceSession(
         }),
         'DmlExecutionProvider',
         'CPUExecutionProvider'
-    ]
+    )
 )
 print(__version__)
 image_arr = numpy.expand_dims(numpy.array(
