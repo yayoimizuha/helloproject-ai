@@ -46,15 +46,14 @@ pyplot.figure(figsize=(20, 20), dpi=150)
 pyplot.imshow(yuv_plane[2, :, :])
 pyplot.show()
 pyplot.close("all")
-ycbcr_mat = yuv_plane.transpose((1, 2, 0)).reshape((-1, 3)) - [0, 128, 128]
+ycbcr_mat = yuv_plane.transpose((1, 2, 0)) - [0, 128, 128]
 # print(ycbcr_mat)
 transform_matrix = numpy.array([
-    [1.0, 0.0, 1.5748],
-    [1.0, -0.1873, -0.4681],
-    [1.0, 1.8556, 0.0]
+    [1, 0, 1.402],
+    [1, -0.344136, -0.714136],
+    [1, 1.772, 0]
 ])
-rgb_plane = (numpy.clip(numpy.dot(ycbcr_mat, transform_matrix.T), 0, 255)
-             .reshape(pitch_h, pitch_w, 3).astype(numpy.uint8))
+rgb_plane = (numpy.clip(numpy.dot(ycbcr_mat, transform_matrix.T), 0, 255).astype(numpy.uint8))
 pyplot.figure(figsize=(20, 20), dpi=150)
 pyplot.imshow(rgb_plane)
 pyplot.show()
