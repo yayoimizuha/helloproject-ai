@@ -14,7 +14,7 @@ from concurrent.futures import ThreadPoolExecutor
 from pandas import DataFrame
 from seaborn import heatmap, color_palette, set_palette
 from matplotlib import pyplot
-from japanize_matplotlib import japanize
+from matplotlib_fontja import japanize
 
 device = device('cuda' if is_available() else 'cpu')
 # device = 'cpu'

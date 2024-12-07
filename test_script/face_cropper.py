@@ -1,10 +1,16 @@
 # import cv2
+import os
+# print(os.environ)
+for p in os.environ['Path'].split(os.pathsep):
+    if os.path.isdir(p) and p != ".":
+        print(p)
+        os.add_dll_directory(p)
+
 import msgspec
 from torch import tensor
 import torch
 from torchvision.transforms import functional, InterpolationMode
 from torchvision.io import decode_jpeg
-import os
 # import shutil
 import numpy
 from PIL import Image
@@ -13,12 +19,13 @@ from more_itertools import chunked
 from tqdm import tqdm
 import math
 
-ROOT_DIR = r"D:\helloproject-ai-data\blog_images"
-CROPPED_DIR = r"D:\helloproject-ai-data\face_cropped"
+ROOT_DIR = r"E:\helloproject-ai-data\blog_images"
+CROPPED_DIR = r"E:\helloproject-ai-data\face_cropped"
 CROP_THRESHOLD = 0.8
 
 inference_size = 640
 device = torch.device("cuda")
+device = torch.device("xpu") if torch.xpu.is_available() else exit(-1)
 
 
 def calc_rotate(landmark: list[list[float]]) -> tuple[tuple[int, int], float]:
